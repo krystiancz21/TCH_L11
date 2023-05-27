@@ -1,0 +1,66 @@
+version: "3.2"
+services:
+# zdefiniowanie usługi "nginx" jako serwer Nginx
+  nginx:
+    # zbudowanie obrazu na bazie Dockerfile znajdującego się w katalogu "nginx" w bieżącym kontekście
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    # przekierowanie portu lokalnego 6666 na port 80 w kontenerze
+    ports:
+      - "6666:80"
+    # automatyczne uruchomienie usługi chyba, że została zatrzymana celowo
+    restart: unless-stopped
+    # podłączenie do sieci backend oraz frontend
+    networks:
+      - frontend
+      - backend
+    # zamontowanie katalogu lokalnego "./data/" do katalogu "/var/www/html/" w kontenerze Nginx
+    volumes:
+      - ./data/:/var/www/html/
+
+#  zdefiniowanie usługi "php" jako kontener PHP-FPM, korzystając z obrazu "php:fpm-alpine"
+  php:
+    image: php:fpm-alpine
+    # podłączenie do sieci backend
+    networks:
+      - backend
+    # zamontowanie katalogu lokalnego "./data/" do katalogu "/var/www/html/" w kontenerze PHP.
+    volumes:
+      - ./data/:/var/www/html/
+
+# zdefiniowanie usługi "mysql" jako kontener mysql
+  mysql_db:
+    image: mysql:latest
+    # domyślna wtyczka uwierzytelniania 
+    command: --default-authentication-plugin=mysql_native_password
+    # podłączenie do sieci backend
+    networks:
+      - backend
+    # automatyczne uruchomienie usługi chyba, że została zatrzymana celowo
+    restart: unless-stopped
+    # obowiązkowa zmienna, określa hasło, które zostanie ustawione dla konta administratora MySQL
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+
+# zdefiniowanie usługi "phpmyadmin" jako kontener phpMyAdmin
+  phpmyadmin:
+    image: phpmyadmin:latest
+    # podłączenie do sieci backend
+    networks:
+      - backend 
+    # przekierowanie portu lokalnego 6001 na port 80 w kontenerze
+    ports:
+      - 6001:80
+    # automatyczne uruchomienie usługi chyba, że została zatrzymana celowo
+    restart: unless-stopped
+    # uruchomienie phpMyAdmin z opcją dowolnego serwera - MySQL/MariaDB - na stronie logowania
+    environment:
+      - PMA_ARBITRARY=1
+
+# zdefiniowanie sieci "forntend" oraz "backend"
+networks:
+  frontend:
+    driver: bridge
+  backend:  
+    driver: bridge
