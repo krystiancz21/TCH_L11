@@ -22,7 +22,6 @@ services:
 #  zdefiniowanie usługi "php" jako kontener PHP-FPM, korzystając z obrazu "php:fpm-alpine"
   php:
     image: php:fpm-alpine
-    # podłączenie do sieci backend
     networks:
       - backend
     # zamontowanie katalogu lokalnego "./data/" do katalogu "/var/www/html/" w kontenerze PHP.
@@ -32,29 +31,24 @@ services:
 # zdefiniowanie usługi "mysql" jako kontener mysql
   mysql_db:
     image: mysql:latest
-    # domyślna wtyczka uwierzytelniania 
+    # domyślna wtyczka uwierzytelniania (na pods. dokumentacji)
     command: --default-authentication-plugin=mysql_native_password
-    # podłączenie do sieci backend
     networks:
       - backend
-    # automatyczne uruchomienie usługi chyba, że została zatrzymana celowo
     restart: unless-stopped
-    # obowiązkowa zmienna, określa hasło, które zostanie ustawione dla konta administratora MySQL
+    # obowiązkowa zmienna, która określa hasło, jakie zostanie ustawione dla konta administratora MySQL
     environment:
       MYSQL_ROOT_PASSWORD: root
 
 # zdefiniowanie usługi "phpmyadmin" jako kontener phpMyAdmin
   phpmyadmin:
     image: phpmyadmin:latest
-    # podłączenie do sieci backend
     networks:
       - backend 
-    # przekierowanie portu lokalnego 6001 na port 80 w kontenerze
     ports:
       - 6001:80
-    # automatyczne uruchomienie usługi chyba, że została zatrzymana celowo
     restart: unless-stopped
-    # uruchomienie phpMyAdmin z opcją dowolnego serwera - MySQL/MariaDB - na stronie logowania
+    # uruchomienie phpMyAdmin z opcją dowolnego serwera MySQL lub MariaDB na stronie logowania
     environment:
       - PMA_ARBITRARY=1
 
